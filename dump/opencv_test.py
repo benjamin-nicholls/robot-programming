@@ -25,7 +25,8 @@ class ImageConverter(Node):
         namedWindow("masked")
         namedWindow("canny")
         cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        cv_image = resize(cv_image, None, fx=0.2, fy=0.2, interpolation = INTER_CUBIC)
+        #cv_image = resize(cv_image, None, fx=0.2, fy=0.2, interpolation = INTER_CUBIC)
+        cv_image = resize(cv_image, None, fx=1, fy=1, interpolation = INTER_CUBIC)
 
         mask = inRange(cv_image, (0, 150, 150), (255, 255, 255))
         imshow("masked", mask)
