@@ -7,7 +7,7 @@ class Mover(Node):
     """
     A very simple Roamer implementation for LIMO.
     It simply goes straight until any obstacle is within
-    2 m distance and then just simply turns left.
+    0.5m distance and then just simply turns left.
     A purely reactive approach.
     """
     def __init__(self):
@@ -24,6 +24,7 @@ class Mover(Node):
         """
         Callback called any time a new laser scan become available
         """
+        # Takes an arc in front of the robot.
         min_dist = min(data.ranges[int(len(data.ranges)/2) -10 : int(len(data.ranges)/2) +10])
         # print("Min: ", min_dist)
         t = Twist()
