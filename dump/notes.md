@@ -1,19 +1,19 @@
-docker login lcas.lincoln.ac.uk
-login
-pass
+https://github.com/LCAS/CMP9767_LIMO/wiki
 
-cd kasm-lcas-jammy.docker-compose.yaml
+cd <to kasm-lcas-jammy.docker-compose.yaml>
+docker login lcas.lincoln.ac.uk -<login> -p <pass>
 
 docker compose -f kasm-lcas-jammy.docker-compose.yaml pull
-
 docker compose -f kasm-lcas-jammy.docker-compose.yaml up -d
 
 https://localhost:6901
-user
-pass
+kasm_user
+password
 
 
-
+ros2 launch limo_gazebosim limo_gazebo_diff.launch.py
+. install/setup.bash 
+or /opt/ros/lcas_addons/install/setup.bash
 
 
 
