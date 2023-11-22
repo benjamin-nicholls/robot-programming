@@ -14,6 +14,9 @@ class ImageConverter(Node):
                                                 "/limo/depth_camera_link/image_raw",
                                                 self.image_callback,
                                                 10)
+        self.alreadyPrinted = False
+        self.verbose = True
+        self.showIntermediateImages = False
     
     def image_callback(self, data):
         '''
@@ -21,31 +24,50 @@ class ImageConverter(Node):
         '''
         # Convert input image to cv2 format.
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, 'bgr8')  # 'bgr8'
+            cv_image_bgr = self.bridge.imgmsg_to_cv2(data, 'bgr8')  # 'bgr8'
         except CvBridgeError as e:
             print(e)
-        
+
+        if self.showIntermediateImages:
+            cv2.namedWindow('1 Orignal Image', cv2.WINDOW_AUTOSIZE)
+            cv2.imshow('1 Orignal Image', cv_image_bgr)
+
         # Convert BGR to HSV.
-        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
+        cv_image_hsv = cv2.cvtColor(cv_image_bgr, cv2.COLOR_BGR2HSV)
 
-        cv2.namedWindow('Orignal Image', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('Orignal Image', cv_image)
-
-        # Get mask for orange.
-        # H [0,179], S [0,255], V [0,255].
-        # 10-16, 75-95, 50-90
-        L = [10,75,50]
-        U =  [16,95,90]
-        lower_thresh = (179/100*L[0], 255/100*L[1], 255/100*L[2])
-        upper_thresh = (179/100*U[0], 255/100*U[1], 255/100*U[2])
-        masked_image = cv2.inRange(cv_image, lower_thresh, upper_thresh)
-        cv2.namedWindow('Mask', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('Mask', masked_image)
-
-        new_image = numpy.bitwise_and(cv_image, masked_image)
-        cv2.namedWindow('new window', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('new window', new_image)
         
+        # General HSV ranges: 0-360, 0-100%, 0-100%
+        # OpenCV HSV ranges: H [0,179], S [0,255], V [0,255].
+        
+        # HSV upper and lower bounds.
+        L = [10,75,50]
+        U = [20,100,100]
+        # Normalisation.
+        lower_thresh = (L[0]/360*179, L[1]/100*255, L[2]/100*255)
+        upper_thresh = (U[0]/360*179, U[1]/100*255, U[2]/100*255)
+
+        if self.verbose and not self.alreadyPrinted:
+            print(f'lower_thresh={lower_thresh}, upper_thresh={upper_thresh}')
+            self.alreadyPrinted = True
+
+        # Get mask for colour orange.
+        masked_image = cv2.inRange(cv_image_hsv, lower_thresh, upper_thresh)
+        if self.showIntermediateImages:
+            cv2.namedWindow('2 Mask', cv2.WINDOW_AUTOSIZE)
+            cv2.imshow('2 Mask', masked_image)
+
+        # Apply mask and get result image.
+        result_image_hsv = cv2.bitwise_and(cv_image_hsv, cv_image_hsv, mask=masked_image)
+        # Convert back to BGR colourspace.
+        result_image_bgr = cv2.cvtColor(result_image_hsv, cv2.COLOR_HSV2BGR)
+        cv2.namedWindow('Resultant Image', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('Resultant Image', result_image_bgr)
+        
+        image_canny = cv2.Canny(cv_image_bgr, 5, 300)
+        cv2.namedWindow('Canny', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('Canny', image_canny)
+
+
         cv2.waitKey(1)
 
 
